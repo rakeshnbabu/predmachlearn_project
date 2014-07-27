@@ -1,0 +1,227 @@
+Practical Machine Learning Project
+#+PROPERTY: session *R* 
+* Data import
+#+begin_src R
+  library(caret)
+  library(R.utils)
+  
+  cc <- colClasses(fmt="cf2ccfc152cf")
+  rawTrain <- read.csv("pml-training.csv", colClasses=cc, quote="\"\"")
+  rawTest <- read.csv("pml-testing.csv",   colClasses =cc, quote="\"")
+  
+  rawTrain[,c(1,3,4,7)] <- sapply(rawTrain[,c(1,3,4,7)], FUN=as.integer)
+  rawTest[,c(1,3,4,7)] <- sapply(rawTest[,c(1,3,4,7)], FUN=as.integer)
+  
+  rawTrain[,8:159] <- sapply(rawTrain[,8:159], FUN=as.numeric)
+  rawTest[,8:159] <- sapply(rawTest[,8:159], FUN=as.numeric)
+#+end_src
+#+results:
+* Exploration
+** Number of fields
+#+begin_src R
+  length(rawTrain[1,])
+#+end_src
+
+#+results:
+: 160
+
+*** Data types
+#+begin_src R
+  cbind(names(rawTrain),lapply(rawTrain, class))
+#+end_src
+
+#+results:
+| X                       | integer   |
+| user_name                | factor    |
+| raw_timestamp_part_1      | integer   |
+| raw_timestamp_part_2      | integer   |
+| cvtd_timestamp           | character |
+| new_window               | factor    |
+| num_window               | integer   |
+| roll_belt                | numeric   |
+| pitch_belt               | numeric   |
+| yaw_belt                 | numeric   |
+| total_accel_belt         | numeric   |
+| kurtosis_roll_belt       | numeric   |
+| kurtosis_picth_belt      | numeric   |
+| kurtosis_yaw_belt        | numeric   |
+| skewness_roll_belt       | numeric   |
+| skewness_roll_belt.1     | numeric   |
+| skewness_yaw_belt        | numeric   |
+| max_roll_belt            | numeric   |
+| max_picth_belt           | numeric   |
+| max_yaw_belt             | numeric   |
+| min_roll_belt            | numeric   |
+| min_pitch_belt           | numeric   |
+| min_yaw_belt             | numeric   |
+| amplitude_roll_belt      | numeric   |
+| amplitude_pitch_belt     | numeric   |
+| amplitude_yaw_belt       | numeric   |
+| var_total_accel_belt      | numeric   |
+| avg_roll_belt            | numeric   |
+| stddev_roll_belt         | numeric   |
+| var_roll_belt            | numeric   |
+| avg_pitch_belt           | numeric   |
+| stddev_pitch_belt        | numeric   |
+| var_pitch_belt           | numeric   |
+| avg_yaw_belt             | numeric   |
+| stddev_yaw_belt          | numeric   |
+| var_yaw_belt             | numeric   |
+| gyros_belt_x             | numeric   |
+| gyros_belt_y             | numeric   |
+| gyros_belt_z             | numeric   |
+| accel_belt_x             | numeric   |
+| accel_belt_y             | numeric   |
+| accel_belt_z             | numeric   |
+| magnet_belt_x            | numeric   |
+| magnet_belt_y            | numeric   |
+| magnet_belt_z            | numeric   |
+| roll_arm                 | numeric   |
+| pitch_arm                | numeric   |
+| yaw_arm                  | numeric   |
+| total_accel_arm          | numeric   |
+| var_accel_arm            | numeric   |
+| avg_roll_arm             | numeric   |
+| stddev_roll_arm          | numeric   |
+| var_roll_arm             | numeric   |
+| avg_pitch_arm            | numeric   |
+| stddev_pitch_arm         | numeric   |
+| var_pitch_arm            | numeric   |
+| avg_yaw_arm              | numeric   |
+| stddev_yaw_arm           | numeric   |
+| var_yaw_arm              | numeric   |
+| gyros_arm_x              | numeric   |
+| gyros_arm_y              | numeric   |
+| gyros_arm_z              | numeric   |
+| accel_arm_x              | numeric   |
+| accel_arm_y              | numeric   |
+| accel_arm_z              | numeric   |
+| magnet_arm_x             | numeric   |
+| magnet_arm_y             | numeric   |
+| magnet_arm_z             | numeric   |
+| kurtosis_roll_arm        | numeric   |
+| kurtosis_picth_arm       | numeric   |
+| kurtosis_yaw_arm         | numeric   |
+| skewness_roll_arm        | numeric   |
+| skewness_pitch_arm       | numeric   |
+| skewness_yaw_arm         | numeric   |
+| max_roll_arm             | numeric   |
+| max_picth_arm            | numeric   |
+| max_yaw_arm              | numeric   |
+| min_roll_arm             | numeric   |
+| min_pitch_arm            | numeric   |
+| min_yaw_arm              | numeric   |
+| amplitude_roll_arm       | numeric   |
+| amplitude_pitch_arm      | numeric   |
+| amplitude_yaw_arm        | numeric   |
+| roll_dumbbell            | numeric   |
+| pitch_dumbbell           | numeric   |
+| yaw_dumbbell             | numeric   |
+| kurtosis_roll_dumbbell   | numeric   |
+| kurtosis_picth_dumbbell  | numeric   |
+| kurtosis_yaw_dumbbell    | numeric   |
+| skewness_roll_dumbbell   | numeric   |
+| skewness_pitch_dumbbell  | numeric   |
+| skewness_yaw_dumbbell    | numeric   |
+| max_roll_dumbbell        | numeric   |
+| max_picth_dumbbell       | numeric   |
+| max_yaw_dumbbell         | numeric   |
+| min_roll_dumbbell        | numeric   |
+| min_pitch_dumbbell       | numeric   |
+| min_yaw_dumbbell         | numeric   |
+| amplitude_roll_dumbbell  | numeric   |
+| amplitude_pitch_dumbbell | numeric   |
+| amplitude_yaw_dumbbell   | numeric   |
+| total_accel_dumbbell     | numeric   |
+| var_accel_dumbbell       | numeric   |
+| avg_roll_dumbbell        | numeric   |
+| stddev_roll_dumbbell     | numeric   |
+| var_roll_dumbbell        | numeric   |
+| avg_pitch_dumbbell       | numeric   |
+| stddev_pitch_dumbbell    | numeric   |
+| var_pitch_dumbbell       | numeric   |
+| avg_yaw_dumbbell         | numeric   |
+| stddev_yaw_dumbbell      | numeric   |
+| var_yaw_dumbbell         | numeric   |
+| gyros_dumbbell_x         | numeric   |
+| gyros_dumbbell_y         | numeric   |
+| gyros_dumbbell_z         | numeric   |
+| accel_dumbbell_x         | numeric   |
+| accel_dumbbell_y         | numeric   |
+| accel_dumbbell_z         | numeric   |
+| magnet_dumbbell_x        | numeric   |
+| magnet_dumbbell_y        | numeric   |
+| magnet_dumbbell_z        | numeric   |
+| roll_forearm             | numeric   |
+| pitch_forearm            | numeric   |
+| yaw_forearm              | numeric   |
+| kurtosis_roll_forearm    | numeric   |
+| kurtosis_picth_forearm   | numeric   |
+| kurtosis_yaw_forearm     | numeric   |
+| skewness_roll_forearm    | numeric   |
+| skewness_pitch_forearm   | numeric   |
+| skewness_yaw_forearm     | numeric   |
+| max_roll_forearm         | numeric   |
+| max_picth_forearm        | numeric   |
+| max_yaw_forearm          | numeric   |
+| min_roll_forearm         | numeric   |
+| min_pitch_forearm        | numeric   |
+| min_yaw_forearm          | numeric   |
+| amplitude_roll_forearm   | numeric   |
+| amplitude_pitch_forearm  | numeric   |
+| amplitude_yaw_forearm    | numeric   |
+| total_accel_forearm      | numeric   |
+| var_accel_forearm        | numeric   |
+| avg_roll_forearm         | numeric   |
+| stddev_roll_forearm      | numeric   |
+| var_roll_forearm         | numeric   |
+| avg_pitch_forearm        | numeric   |
+| stddev_pitch_forearm     | numeric   |
+| var_pitch_forearm        | numeric   |
+| avg_yaw_forearm          | numeric   |
+| stddev_yaw_forearm       | numeric   |
+| var_yaw_forearm          | numeric   |
+| gyros_forearm_x          | numeric   |
+| gyros_forearm_y          | numeric   |
+| gyros_forearm_z          | numeric   |
+| accel_forearm_x          | numeric   |
+| accel_forearm_y          | numeric   |
+| accel_forearm_z          | numeric   |
+| magnet_forearm_x         | numeric   |
+| magnet_forearm_y         | numeric   |
+| magnet_forearm_z         | numeric   |
+| classe                  | factor    |
+
+** Number of records
+#+begin_src R
+  length(rawTrain[,1])
+#+end_src
+
+#+results:
+: 19622
+
+** Missing Data
+#+begin_src R 
+  summary(rowSums(is.na(rawTrain)))
+  summary(rowSums(is.na(rawTest)))
+  
+  NATrainCols <- which(colSums(is.na(rawTrain)) > 0)
+  NATestCols <- which(colSums(is.na(rawTest)) > 0)
+  print(length(NATrainCols))
+  print(length(NATestCols))
+  print(setdiff(NATrainCols,NATestCols))
+#+end_src
+
+#+results:
+
+** Analysis plan
+*** Model
+Will use Random Forests with PCA. Preprocessing will involve imputing missing values by Nearest Neighbor approximation.
+* Preprocessing
+** Data partitioning
+** Data imputation
+** Data manipulation
+* Analysis
+** Final Model
+** Test results
+** Validation results (for submission)
