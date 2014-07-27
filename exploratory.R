@@ -5,19 +5,45 @@
 
 # Test data: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
-
+library(caret)
 
 
 rawTrain <- read.csv("pml-training.csv")
+rawTest <- read.csv("pml-testing.csv")
 
 dim(rawTrain)
-
 names(rawTrain)
-
-summary(rawTrain$user_name)
-
-summary(rawTrain$new_window)
+summary(rawTrain)
 
 summary(rawTrain$classe)
 
-library(caret)
+
+length(which(rowSums(is.na(rawTrain)) == 0))
+length(which(rowSums(is.na(rawTrain)) > 0))
+length(which(colSums(is.na(rawTrain)) == 0))
+length(which(colSums(is.na(rawTrain)) > 0))
+
+trainIndex <- createDataPartition(newTrain$classe, p=0.75, list=FALSE)
+
+tTrain <- rawTrain[trainIndex,]
+tTest <- rawTrain[-trainIndex,]
+
+length(tTrain[,1])
+length(tTest[,1])
+length(rawTrain[,1])
+
+
+
+
+rfMod <- train(classe ~ ., data = tTrain, method = "rf", prox=TRUE)
+
+rfMod
+
+head(tTest)
+
+pred <- predict(rfMod, newdata=head(tTest))
+
+pred
+
+length(pred)
+
